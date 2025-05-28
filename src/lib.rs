@@ -1,6 +1,6 @@
+mod common;
 mod rle;
 mod tests;
-mod traits;
 
+pub use crate::common::CompressionScheme;
 pub use crate::rle::RLE;
-pub use crate::traits::CompressionScheme;

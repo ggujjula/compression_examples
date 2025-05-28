@@ -2,8 +2,7 @@
  * Compressed data is in the form of pairs of bytes: byte1, count1, byte2, count2, ...
  * Runs are thus limited to a length of 255.
  */
-use crate::traits::CompressionError;
-use crate::traits::CompressionScheme;
+use crate::common::{CompressionError, CompressionScheme};
 use std::io::{Error, ErrorKind, Read, Result, Write};
 
 pub struct RLE;
