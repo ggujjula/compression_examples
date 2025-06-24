@@ -22,7 +22,7 @@ impl CompressionScheme for RLE {
                 run_byte = byte;
                 run_length = 1;
             } else {
-                run_length += 1
+                run_length += 1;
             }
         }
         if run_length > 0 {
@@ -41,15 +41,13 @@ impl CompressionScheme for RLE {
                 if read_size == 0 {
                     if read_into_buf == 0 {
                         return Ok(());
-                    } else {
-                        return Err(Error::new(
-                            ErrorKind::UnexpectedEof,
-                            CompressionError::IncompleteInput,
-                        ));
                     }
-                } else {
-                    read_into_buf += read_size;
+                    return Err(Error::new(
+                        ErrorKind::UnexpectedEof,
+                        CompressionError::IncompleteInput,
+                    ));
                 }
+                read_into_buf += read_size;
             }
             let write_buf = vec![buf[0]; buf[1].into()];
             output.write_all(&write_buf)?;

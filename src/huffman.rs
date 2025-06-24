@@ -14,10 +14,10 @@ struct CharFrequencies<T: Hash + Eq> {
 }
 impl<T: Hash + Eq + Clone> CharFrequencies<T> {
     fn new(input: &[T]) -> Self {
-        assert!(input.len() > 0);
+        assert!(!input.is_empty());
         let mut freq: HashMap<&T, usize> = HashMap::new();
-        for char in input.iter() {
-            let prev_count = freq.get(char).map(|v| *v).unwrap_or_default();
+        for char in input {
+            let prev_count = freq.get(char).copied().unwrap_or_default();
             let _ = freq.insert(char, prev_count + 1);
         }
         let mut freq: Vec<(T, usize)> = freq.iter().map(|(k, v)| ((*k).clone(), *v)).collect();
@@ -47,7 +47,7 @@ impl<T: Hash + Eq + Debug + Clone> HuffmanTreeNode<T> {
             .collect();
         let mut processed: VecDeque<HuffmanTreeNode<T>> = VecDeque::new();
         while to_process.len() > 1 {
-            while to_process.len() > 0 {
+            while !to_process.is_empty() {
                 if to_process.len() == 1 {
                     processed.push_back(to_process.pop_front().unwrap());
                 } else {
@@ -95,21 +95,15 @@ impl<T: Clone + Hash + Eq> HuffmanCode<T> {
     fn recurse(code: &mut Self, tree: &HuffmanTreeNode<T>, trace: &mut BitVec) {
         match tree.char {
             None => {
-                match tree.left {
-                    Some(ref left) => {
-                        trace.push(false);
-                        Self::recurse(code, left, trace);
-                        trace.pop();
-                    }
-                    _ => {}
+                if let Some(ref left) = tree.left {
+                    trace.push(false);
+                    Self::recurse(code, left, trace);
+                    trace.pop();
                 }
-                match tree.right {
-                    Some(ref right) => {
-                        trace.push(true);
-                        Self::recurse(code, right, trace);
-                        trace.pop();
-                    }
-                    _ => {}
+                if let Some(ref right) = tree.right {
+                    trace.push(true);
+                    Self::recurse(code, right, trace);
+                    trace.pop();
                 }
             }
             Some(ref c) => {
@@ -158,18 +152,15 @@ impl CompressionScheme for Huffman {
         let persist: Self = Self::deserialize(&mut Deserializer::new(&mut input)).unwrap();
         let tree = HuffmanTreeNode::new(&persist.freq);
         let mut index = &tree;
-        for bit in persist.bitvec.iter() {
+        for bit in &persist.bitvec {
             if *bit {
                 index = index.right.as_ref().unwrap();
             } else {
                 index = index.left.as_ref().unwrap();
             }
-            match index.char {
-                Some(c) => {
-                    output.write(&[c])?;
-                    index = &tree;
-                }
-                None => {}
+            if let Some(c) = index.char {
+                output.write(&[c])?;
+                index = &tree;
             }
         }
         Ok(())
